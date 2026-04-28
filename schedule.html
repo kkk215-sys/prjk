@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Расписание: Чешский + Китайский</title>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;700;900&family=Noto+Serif+SC:wght@400;600&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --red: #E8341A;
+    --gold: #F5C842;
+    --ink: #0D0D0D;
+    --paper: #F2EDE4;
+    --muted: #8C7B6B;
+    --cz: #1A6BE8;
+    --zh: #E8341A;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'IBM Plex Mono', monospace;
+    min-height: 100vh;
+    padding: 2rem 1rem 4rem;
+  }
+
+  header {
+    max-width: 700px;
+    margin: 0 auto 3rem;
+    border-bottom: 3px solid var(--ink);
+    padding-bottom: 1.5rem;
+  }
+
+  .lang-tags {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .tag {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 0.6rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    padding: 0.25rem 0.6rem;
+    border-radius: 2px;
+  }
+
+  .tag-cz { background: var(--cz); color: white; }
+  .tag-zh { background: var(--zh); color: white; }
+  .tag-both { background: var(--ink); color: var(--paper); }
+
+  h1 {
+    font-family: 'Unbounded', sans-serif;
+    font-size: clamp(1.4rem, 5vw, 2.2rem);
+    font-weight: 900;
+    line-height: 1.1;
+    margin-bottom: 0.5rem;
+  }
+
+  .subtitle {
+    color: var(--muted);
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+  }
+
+  .week {
+    max-width: 700px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .day {
+    border: 2px solid var(--ink);
+    background: white;
+    overflow: hidden;
+    transition: transform 0.15s ease;
+  }
+
+  .day:hover { transform: translateX(4px); }
+
+  .day-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.75rem 1rem;
+    border-bottom: 2px solid var(--ink);
+  }
+
+  .day-num {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 2rem;
+    font-weight: 900;
+    line-height: 1;
+    color: var(--muted);
+    opacity: 0.3;
+    min-width: 2.5rem;
+  }
+
+  .day-name {
+    font-family: 'Unbounded', sans-serif;
+    font-weight: 700;
+    font-size: 0.85rem;
+    letter-spacing: 0.05em;
+    flex: 1;
+  }
+
+  .day-focus {
+    font-size: 0.65rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .day-cz .day-header { background: #EFF4FF; border-left: 5px solid var(--cz); }
+  .day-zh .day-header { background: #FFF0ED; border-left: 5px solid var(--zh); }
+  .day-rest .day-header { background: #F5F5F5; border-left: 5px solid var(--muted); }
+
+  .blocks {
+    padding: 0.75rem 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .block {
+    display: grid;
+    grid-template-columns: 80px 1fr auto;
+    align-items: start;
+    gap: 0.75rem;
+    padding: 0.5rem 0;
+    border-bottom: 1px dashed #D0C8BE;
+  }
+
+  .block:last-child { border-bottom: none; }
+
+  .block-time {
+    font-size: 0.7rem;
+    color: var(--muted);
+    padding-top: 2px;
+    white-space: nowrap;
+  }
+
+  .block-content { }
+
+  .block-title {
+    font-size: 0.8rem;
+    font-weight: 600;
+    margin-bottom: 0.2rem;
+  }
+
+  .block-desc {
+    font-size: 0.68rem;
+    color: var(--muted);
+    line-height: 1.4;
+  }
+
+  .block-dur {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 0.6rem;
+    font-weight: 700;
+    background: var(--ink);
+    color: var(--paper);
+    padding: 0.2rem 0.4rem;
+    white-space: nowrap;
+    align-self: start;
+  }
+
+  .total {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-top: 1px solid var(--ink);
+    background: var(--paper);
+  }
+
+  .total-label { font-size: 0.65rem; color: var(--muted); }
+  .total-val {
+    font-family: 'Unbounded', sans-serif;
+    font-weight: 700;
+    font-size: 0.75rem;
+  }
+
+  .legend {
+    max-width: 700px;
+    margin: 2rem auto 0;
+    padding: 1rem;
+    border: 2px solid var(--ink);
+    background: white;
+  }
+
+  .legend-title {
+    font-family: 'Unbounded', sans-serif;
+    font-weight: 700;
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    margin-bottom: 0.75rem;
+  }
+
+  .legend-items {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.7rem;
+    color: var(--muted);
+  }
+
+  .legend-dot, .res-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .res-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    margin-top: 0.5rem;
+  }
+
+  .res-link {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #D0C8BE;
+    background: var(--paper);
+    text-decoration: none;
+    color: var(--ink);
+    transition: background 0.12s, border-color 0.12s, transform 0.1s;
+  }
+
+  .res-link:hover {
+    background: white;
+    border-color: var(--ink);
+    transform: translateX(3px);
+  }
+
+  .res-name {
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-bottom: 0.1rem;
+  }
+
+  .res-url {
+    font-size: 0.62rem;
+    color: var(--muted);
+  }
+
+  .res-arrow {
+    margin-left: auto;
+    font-size: 0.85rem;
+    color: var(--muted);
+    flex-shrink: 0;
+  }
+
+  .note {
+    max-width: 700px;
+    margin: 1rem auto 0;
+    font-size: 0.68rem;
+    color: var(--muted);
+    line-height: 1.6;
+    padding: 0 0.5rem;
+  }
+
+  .zh-char {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 1.2rem;
+    color: var(--zh);
+    opacity: 0.15;
+    position: absolute;
+    right: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+
+  .day-header { position: relative; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="lang-tags">
+    <span class="tag tag-cz">🇨🇿 ČEŠTINA</span>
+    <span class="tag tag-zh">🇨🇳 中文</span>
+    <span class="tag tag-both">МЕСЯЦ 1</span>
+  </div>
+  <h1>Расписание на неделю</h1>
+  <p class="subtitle">~1 час в день · чередование языков · без марафонов</p>
+</header>
+
+<div class="week">
+
+  <!-- ПН -->
+  <div class="day day-cz">
+    <div class="day-header">
+      <span class="day-num">01</span>
+      <span class="day-name">ПОНЕДЕЛЬНИК</span>
+      <span class="tag tag-cz">Чешский</span>
+      <span class="zh-char">一</span>
+    </div>
+    <div class="blocks">
+      <div class="block">
+        <span class="block-time">утро</span>
+        <div class="block-content">
+          <div class="block-title">Anki — чешская лексика</div>
+          <div class="block-desc">15 новых слов + повторение. Колода: Czech frequency 1000</div>
+        </div>
+        <span class="block-dur">15 мин</span>
+      </div>
+      <div class="block">
+        <span class="block-time">вечер</span>
+        <div class="block-content">
+          <div class="block-title">Česky krok za krokem — урок</div>
+          <div class="block-desc">Один параграф + упражнения. Пишешь от руки.</div>
+        </div>
+        <span class="block-dur">30 мин</span>
+      </div>
+      <div class="block">
+        <span class="block-time">фоном</span>
+        <div class="block-content">
+          <div class="block-title">Чешское радио / подкаст</div>
+          <div class="block-desc">ČRo — Čeština pro cizince. Фоном пока едешь / ешь.</div>
+        </div>
+        <span class="block-dur">20 мин</span>
+      </div>
+    </div>
+    <div class="total">
+      <span class="total-label">итого</span>
+      <span class="total-val">~65 мин</span>
+    </div>
+  </div>
+
+  <!-- ВТ -->
+  <div class="day day-zh">
+    <div class="day-header">
+      <span class="day-num">02</span>
+      <span class="day-name">ВТОРНИК</span>
+      <span class="tag tag-zh">Китайский</span>
+      <span class="zh-char">二</span>
+    </div>
+    <div class="blocks">
+      <div class="block">
+        <span class="block-time">утро</span>
+        <div class="block-content">
+          <div class="block-title">Anki — HSK 1 иероглифы</div>
+          <div class="block-desc">10 новых карточек. Каждое слово — с тоном, с примером.</div>
+        </div>
+        <span class="block-dur">15 мин</span>
+      </div>
+      <div class="block">
+        <span class="block-time">вечер</span>
+        <div class="block-content">
+          <div class="block-title">HelloChinese — урок</div>
+          <div class="block-desc">Приложение, структурированный курс от нуля. 1 урок = ~15 мин.</div>
+        </div>
+        <span class="block-dur">20 мин</span>
+      </div>
+      <div class="block">
+        <span class="block-time">вечер</span>
+        <div class="block-content">
+          <div class="block-title">Yoyo Chinese — грамматика</div>
+          <div class="block-desc">YouTube. Yangyang объясняет по-английски, очень чётко. 1 видео.</div>
+        </div>
+        <span class="block-dur">15 мин</span>
+      </div>
+    </div>
+    <div class="total">
+      <span class="total-label">итого</span>
+      <span class="total-val">~50 мин</span>
+    </div>
+  </div>
+
+  <!-- СР -->
+  <div class="day day-cz">
+    <div class="day-header">
+      <span class="day-num">03</span>
+      <span class="day-name">СРЕДА</span>
+      <span class="tag tag-cz">Чешский</span>
+      <span class="zh-char">三</span>
+    </div>
+    <div class="blocks">
+      <div class="block">
+        <span class="block-time">утро</span>
+        <div class="block-content">
+          <div class="block-title">Anki — повторение</div>
+          <div class="block-desc">Только повторение старых слов. Новых не добавляешь.</div>
+        </div>
+        <span class="block-dur">10 мин</span>
+      </div>
+      <div class="block">
+        <span class="block-time">вечер</span>
+        <div class="block-content">
+          <div class="block-title">Падежи — практика</div>
+          <div class="block-desc">Берёшь 5 существительных и склоняешь по всем падежам. Сверяешь с таблицей.</div>
+        </div>
+        <span class="block-dur">25 мин</span>
+      </div>
+      <div class="block">
+        <span class="block-time">вечер</span>
+        <div class="block-content">
+          <div class="block-title">Чешское кино / сериал</div>
+          <div class="block-desc">С чешскими субтитрами. Рекомендация: «Kukačky» или «Případy 1. oddělení».</div>
+        </div>
+        <span class="block-dur">20 мин</span>
+      </div>
+    </div>
+    <div class="total">
+      <span class="total-label">итого</span>
+      <span class="total-val">~55 мин</span>
+    </div>
+  </div>
+
+  <!-- ЧТ -->
+  <div class="day day-zh">
+    <div class="day-header">
+      <span class="day-num">04</span>
+      <span class="day-name">ЧЕТВЕРГ</span>
+      <span class="tag tag-zh">Китайский</span>
+      <span class="zh-char">四</span>
+    </div>
+    <div class="blocks">
+      <div class="block">
+        <span class="block-time">утро</span>
+        <div class="block-content">
+          <div class="block-title">Anki — повторение + 10 новых</div>
+          <div class="block-desc">Обязательно произноси вслух с тонами. Не молча.</div>
+        </div>
+        <span class="block-dur">15 мин</span>
+      </div>
+      <div class="block">
+        <span class="block-time">вечер</span>
+        <div class="block-content">
+          <div class="block-title">Письмо иероглифов</div>
+          <div class="block-desc">Пишешь от руки 10 иероглифов из Anki по 5 раз. Порядок черт важен.</div>
+        </div>
+        <span class="block-dur">20 мин</span>
+      </div>
+      <div class="block">
+        <span class="block-time">вечер</span>
+        <div class="block-content">
+          <div class="block-title">Аудио HSK 1</div>
+          <div class="block-desc">YouTube: «HSK 1 listening practice». Слушаешь и повторяешь вслух.</div>
+        </div>
+        <span class="block-dur">15 мин</span>
+      </div>
+    </div>
+    <div class="total">
+      <span class="total-label">итого</span>
+      <span class="total-val">~50 мин</span>
+    </div>
+  </div>
+
+  <!-- ПТ -->
+  <div class="day day-cz">
+    <div class="day-header">
+      <span class="day-num">05</span>
+      <span class="day-name">ПЯТНИЦА</span>
+      <span class="tag tag-cz">Чешский</span>
+      <span class="zh-char">五</span>
+    </div>
+    <div class="blocks">
+      <div class="block">
+        <span class="block-time">утро</span>
+        <div class="block-content">
+          <div class="block-title">Anki — чешский</div>
+          <div class="block-desc">15 новых слов. Тема недели: бытовая лексика (дом, еда, транспорт).</div>
+        </div>
+        <span class="block-dur">15 мин</span>
+      </div>
+      <div class="block">
+        <span class="block-time">вечер</span>
+        <div class="block-content">
+          <div class="block-title">Разговорная практика (письменная)</div>
+          <div class="block-desc">Пишешь 5–7 предложений о своём дне на чешском. Можно криво — главное писать.</div>
+        </div>
+        <span class="block-dur">20 мин</span>
+      </div>
+      <div class="block">
+        <span class="block-time">вечер</span>
+        <div class="block-content">
+          <div class="block-title">Česky krok za krokem — новый урок</div>
+          <div class="block-desc">Разбираешь следующий раздел учебника.</div>
+        </div>
+        <span class="block-dur">25 мин</span>
+      </div>
+    </div>
+    <div class="total">
+      <span class="total-label">итого</span>
+      <span class="total-val">~60 мин</span>
+    </div>
+  </div>
+
+  <!-- СБ -->
+  <div class="day day-zh">
+    <div class="day-header">
+      <span class="day-num">06</span>
+      <span class="day-name">СУББОТА</span>
+      <span class="tag tag-zh">Китайский</span>
+      <span class="zh-char">六</span>
+    </div>
+    <div class="blocks">
+      <div class="block">
+        <span class="block-time">день</span>
+        <div class="block-content">
+          <div class="block-title">Длинная сессия — закрепление недели</div>
+          <div class="block-desc">HelloChinese 2 урока + Anki повторение всей недели. Без спешки.</div>
+        </div>
+        <span class="block-dur">40 мин</span>
+      </div>
+      <div class="block">
+        <span class="block-time">день</span>
+        <div class="block-content">
+          <div class="block-title">Китайское видео с субтитрами</div>
+          <div class="block-desc">Канал «Mandarin Corner» (уровень beginner) или мультики на китайском.</div>
+        </div>
+        <span class="block-dur">20 мин</span>
+      </div>
+    </div>
+    <div class="total">
+      <span class="total-label">итого</span>
+      <span class="total-val">~60 мин</span>
+    </div>
+  </div>
+
+  <!-- ВС -->
+  <div class="day day-rest">
+    <div class="day-header">
+      <span class="day-num">07</span>
+      <span class="day-name">ВОСКРЕСЕНЬЕ</span>
+      <span class="tag" style="background:var(--muted);color:white;">Отдых / резерв</span>
+      <span class="zh-char" style="color:var(--muted);">日</span>
+    </div>
+    <div class="blocks">
+      <div class="block">
+        <span class="block-time">по желанию</span>
+        <div class="block-content">
+          <div class="block-title">Только Anki — оба языка</div>
+          <div class="block-desc">Если не хочется — не делай. Главное не пропускать пн–сб.</div>
+        </div>
+        <span class="block-dur">15 мин</span>
+      </div>
+      <div class="block">
+        <span class="block-time">по желанию</span>
+        <div class="block-content">
+          <div class="block-title">Разбор ошибок недели</div>
+          <div class="block-desc">Что было непонятно? Запиши 2–3 вопроса для тьютора.</div>
+        </div>
+        <span class="block-dur">10 мин</span>
+      </div>
+    </div>
+    <div class="total">
+      <span class="total-label">итого</span>
+      <span class="total-val">~25 мин</span>
+    </div>
+  </div>
+
+</div>
+
+<div class="legend">
+  <div class="legend-title">🇨🇿 ЧЕШСКИЙ</div>
+  <div class="res-list">
+    <a class="res-link" href="https://www.czechstepbystep.cz" target="_blank">
+      <span class="res-dot" style="background:var(--cz)"></span>
+      <div>
+        <div class="res-name">Česky krok za krokem</div>
+        <div class="res-url">czechstepbystep.cz — книга + бесплатные аудио</div>
+      </div>
+      <span class="res-arrow">↗</span>
+    </a>
+    <a class="res-link" href="https://cesky.radio.cz" target="_blank">
+      <span class="res-dot" style="background:var(--cz)"></span>
+      <div>
+        <div class="res-name">ČRo — Čeština pro cizince</div>
+        <div class="res-url">cesky.radio.cz — подкасты от Чешского радио</div>
+      </div>
+      <span class="res-arrow">↗</span>
+    </a>
+  </div>
+
+  <div class="legend-title" style="margin-top:1.25rem">🇨🇳 КИТАЙСКИЙ</div>
+  <div class="res-list">
+    <a class="res-link" href="https://www.hellochinese.cc" target="_blank">
+      <span class="res-dot" style="background:var(--zh)"></span>
+      <div>
+        <div class="res-name">HelloChinese</div>
+        <div class="res-url">hellochinese.cc — приложение iOS / Android</div>
+      </div>
+      <span class="res-arrow">↗</span>
+    </a>
+    <a class="res-link" href="https://www.youtube.com/@YoyoChinese" target="_blank">
+      <span class="res-dot" style="background:var(--zh)"></span>
+      <div>
+        <div class="res-name">Yoyo Chinese</div>
+        <div class="res-url">youtube.com/@YoyoChinese — грамматика по-английски</div>
+      </div>
+      <span class="res-arrow">↗</span>
+    </a>
+    <a class="res-link" href="https://www.pleco.com" target="_blank">
+      <span class="res-dot" style="background:var(--zh)"></span>
+      <div>
+        <div class="res-name">Pleco</div>
+        <div class="res-url">pleco.com — лучший китайский словарь, iOS / Android</div>
+      </div>
+      <span class="res-arrow">↗</span>
+    </a>
+  </div>
+
+  <div class="legend-title" style="margin-top:1.25rem">🃏 ОБА ЯЗЫКА</div>
+  <div class="res-list">
+    <a class="res-link" href="https://apps.ankiweb.net" target="_blank">
+      <span class="res-dot" style="background:var(--ink)"></span>
+      <div>
+        <div class="res-name">Anki</div>
+        <div class="res-url">apps.ankiweb.net — десктоп бесплатно, AnkiDroid бесплатно</div>
+      </div>
+      <span class="res-arrow">↗</span>
+    </a>
+    <a class="res-link" href="https://ankiweb.net/shared/decks" target="_blank">
+      <span class="res-dot" style="background:var(--ink)"></span>
+      <div>
+        <div class="res-name">Колоды Anki</div>
+        <div class="res-url">ankiweb.net/shared/decks — ищи «HSK 1» и «Czech frequency»</div>
+      </div>
+      <span class="res-arrow">↗</span>
+    </a>
+  </div>
+</div>
+
+<p class="note">
+  ⚠️ Месяц 1 — без тьютора, только самостоятельно. С 4-го месяца добавляешь Italki (1–2 раза в неделю) для чешского и китайского отдельно. Расписание пересматриваем каждые 4 недели под твой темп.
+</p>
+
+</body>
+</html>
